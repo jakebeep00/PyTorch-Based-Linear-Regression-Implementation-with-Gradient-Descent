@@ -1,0 +1,50 @@
+import torch
+import matplotlib.pyplot as plt
+
+
+x_raw = torch.linspace(150, 195, 30)
+noise = torch.randn(30) * 3
+y = 0.9 * x_raw - 85 + noise
+
+
+x = (x_raw - x_raw.mean()) / x_raw.std()
+
+
+a = torch.tensor(0.0, requires_grad=True)
+b = torch.tensor(0.0, requires_grad=True)
+
+EPOCH = 1000
+LR = 0.01
+
+
+for _ in range(EPOCH):
+    y_hat = a * x + b
+    loss = torch.mean((y - y_hat) ** 2)
+    loss.backward()
+
+    with torch.no_grad():
+        a -= LR * a.grad
+        b -= LR * b.grad
+
+    a.grad.zero_()
+    b.grad.zero_()
+
+print("학습된 기울기 a:", a.item())
+print("학습된 절편 b:", b.item())
+
+
+
+x_plot_raw = torch.linspace(145, 200, 100)
+x_plot = (x_plot_raw - x_raw.mean()) / x_raw.std()
+y_plot = a * x_plot + b
+
+plt.figure(figsize=(8,6))
+plt.scatter(x_raw.numpy(), y.numpy(), label="Data")
+plt.plot(x_plot_raw.numpy(), y_plot.detach().numpy(), color="red", label="Learned Line")
+plt.xlabel("Height (cm)")
+plt.ylabel("Weight (kg)")
+plt.title("Linear Regression with PyTorch")
+plt.legend()
+plt.grid()
+plt.show()
+
